@@ -23,17 +23,26 @@ export const getMessage = (originString: string): string =>
 export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
   switch (request.method) {
     case 'hello':
-      return wallet.request({
-        method: 'snap_confirm',
-        params: [
-          {
-            prompt: getMessage(origin),
-            description:
-              'This custom confirmation is just for display purposes.',
-            textAreaContent:
-              'But you can edit the snap source code to make it do something, if you want to!',
-          },
-        ],
+      return new Promise((resolve) => {
+        resolve({ hash: 'tx hash from hello' });
+      });
+    // return wallet.request({
+    //   method: 'snap_confirm',
+    //   params: [
+    //     {
+    //       prompt: getMessage(origin),
+    //       description: "If you're seeing this you are pretty cool!",
+    //       textAreaContent: "Embrace what's next for you",
+    //     },
+    //   ],
+    // });
+    case 'sendSCWTransaction':
+      console.log('inside snap. getting params from request', request.params);
+      return new Promise((resolve) => {
+        resolve({
+          hash: 'hash from scw tx 0x87654678',
+          params: request.params,
+        });
       });
     default:
       throw new Error('Method not found.');
