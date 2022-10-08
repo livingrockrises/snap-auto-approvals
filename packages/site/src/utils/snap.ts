@@ -106,11 +106,12 @@ export const sendHello = async () => {
 
   // const requestPermission = await window.ethereum.request({
   //   method: 'wallet_requestPermissions',
-  //   params: [{ snap_manageState: {} }],
-  //   // params: [{ snap_getBip32Entropy: {} }],
-  //   // params: [{ eth_accounts: {} }],
+  // params: [{ snap_manageState: {} }],
+  //   params: [{ snap_getBip44Entropy_60: {} }],
+  // params: [{ eth_accounts: {} }],
   // });
 
+  // console.log('requested permissions.. ');
   // console.log(requestPermission);
 
   // // Saving and retreiving data from storage

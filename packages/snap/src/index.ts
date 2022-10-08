@@ -18,6 +18,19 @@ async function getFees() {
   return response.text();
 }
 
+wallet
+  .request({
+    method: 'wallet_requestPermissions',
+    params: [{ eth_accounts: {} }],
+  })
+  .then((permissions) => {
+    console.log('permissions granted..');
+    console.log(permissions);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+
 wallet.on('accountsChanged', async function (accounts: any) {
   console.log('updated accounts ');
   console.log(accounts[0]);
