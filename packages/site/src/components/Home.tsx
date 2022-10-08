@@ -4,14 +4,18 @@ import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
   connectSnap,
   getSnap,
-  sendHello,
   shouldDisplayReconnectButton,
+  // sendHello,
+  // showGasFees,
+  enableSessionOnSmartAccount,
+  useSmartAccount,
 } from '../utils';
 import {
   ConnectButton,
   InstallFlaskButton,
   ReconnectButton,
   SendHelloButton,
+  EnableModuleButton,
 } from './Buttons';
 import { Card } from './Card';
 
@@ -119,7 +123,23 @@ export const Home = () => {
 
   const handleSendHelloClick = async () => {
     try {
-      await sendHello();
+      // const response = await sendHello();
+      // console.log('app key', response);
+      // await showGasFees();
+      await useSmartAccount();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const handleEnableSessionClick = async () => {
+    try {
+      // const response = await sendHello();
+      // console.log('app key', response);
+      // await showGasFees();
+      // await useSmartAccount();
+      await enableSessionOnSmartAccount();
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -129,7 +149,7 @@ export const Home = () => {
   return (
     <Container>
       <Heading>
-        Welcome to <Span>template-snap</Span>
+        Welcome to <Span>SCW Session keys Snap</Span>
       </Heading>
       <Subtitle>
         Get started by editing <code>src/index.ts</code>
@@ -185,12 +205,30 @@ export const Home = () => {
         )}
         <Card
           content={{
-            title: 'Send Hello message',
+            title: 'Discover Smart Accounts',
             description:
-              'Display a custom message within a confirmation screen in MetaMask.',
+              'Explore more benefits (social recovery and session keys) with smart accounts',
             button: (
               <SendHelloButton
                 onClick={handleSendHelloClick}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            state.isFlask &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Enable Session Module',
+            description: 'Set up temporary session for auto approvals',
+            button: (
+              <EnableModuleButton
+                onClick={handleEnableSessionClick}
                 disabled={!state.installedSnap}
               />
             ),

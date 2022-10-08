@@ -139,4 +139,49 @@ export const sendHello = async () => {
   // console.log(result);
 };
 
+export const showGasFees = async () => {
+  console.log('invoke Snap...');
+  const gasFeesResponse = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: 'fees',
+        params: ['First params'],
+      },
+    ],
+  });
+  console.log(gasFeesResponse);
+};
+
+export const useSmartAccount = async () => {
+  console.log('invoke Snap...');
+  const smartAccountResponse = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: 'connect',
+        params: ['First params'],
+      },
+    ],
+  });
+  console.log(smartAccountResponse);
+};
+
+export const enableSessionOnSmartAccount = async () => {
+  console.log('invoke Snap...');
+  const smartAccountResponse = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: 'enable_session',
+        params: ['First params'],
+      },
+    ],
+  });
+  console.log(smartAccountResponse);
+};
+
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');
