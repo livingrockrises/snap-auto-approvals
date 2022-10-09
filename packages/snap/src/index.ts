@@ -3,10 +3,16 @@ import SmartAccount from '@biconomy-sdk/smart-account';
 import { LocalRelayer } from '@biconomy-sdk/relayer';
 import { ethers, Wallet as EOAWallet } from 'ethers';
 import { configInfo as config } from './utils';
+import { getSessionParams, getPermissionParams } from './utils/execution';
+
+const usdcAddress = '0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF';
 
 let smartAccount: SmartAccount;
 
 const iFace = new ethers.utils.Interface(config.scwContract.abi);
+const iFaceSessionModule = new ethers.utils.Interface(
+  config.sessionKeyModule.abi,
+);
 /**
  *
  */
@@ -111,6 +117,17 @@ export type SCWStorage = {
   scwAddress: string;
 };
 
+export type SessionKeyStorage = {
+  owner: string;
+  sessionKey: string;
+  pk: string;
+};
+
+export type KeyPair = {
+  address: string;
+  pk: string;
+};
+
 export const saveSCWInfo = async (data: SCWStorage) => {
   await wallet.request({
     method: 'snap_manageState',
@@ -132,6 +149,25 @@ export const clearSCWInfo = async () => {
     params: ['clear'],
   });
   return result;
+};
+
+export const storeSessionInfo = async (data: SessionKeyStorage) => {
+  await wallet.request({
+    method: 'snap_manageState',
+    params: ['update', data],
+  });
+};
+
+export const clearSessionInfo = async () => {};
+
+export const getSessionInfo = async () => {};
+
+export const generateKeyPair = () => {
+  const keyPair = ethers.Wallet.createRandom();
+  return {
+    address: keyPair.address,
+    pk: keyPair.privateKey,
+  };
 };
 
 /**
@@ -223,10 +259,13 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
           // }
         });
       });
-    case 'enable_session':
+    case 'enable_session_module':
       return new Promise((resolve, reject) => {
         const relayer = new LocalRelayer(
-          getEOAWallet(process.env.REACT_APP_PKEY || ''),
+          getEOAWallet(
+            process.env.REACT_APP_PKEY ||
+              '3ff26792ed7e1c706357a1565293371f2f479d331e6c718ac5c5445360e2cef8',
+          ),
         );
         console.log('local relayer init..');
         console.log(relayer);
@@ -265,6 +304,78 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
           hex: '0x1E8480',
           type: 'hex',
         };*/
+      });
+    case 'create_session':
+      return new Promise((resolve, reject) => {
+        const keyPair: KeyPair = generateKeyPair();
+        console.log('keypair..', keyPair.address);
+        const sessionParams = getSessionParams();
+        console.log('session params ', sessionParams);
+        const permissionParams = getPermissionParams(usdcAddress);
+        console.log('permission params ', permissionParams);
+
+        const relayer = new LocalRelayer(
+          getEOAWallet(
+            process.env.REACT_APP_PKEY ||
+              '3ff26792ed7e1c706357a1565293371f2f479d331e6c718ac5c5445360e2cef8',
+          ),
+        );
+        console.log('local relayer init..');
+        console.log(relayer);
+        smartAccount.setRelayer(relayer);
+        console.log('relayer is set');
+
+        getEOAAccount()
+          .then(async (eoa) => {
+            await storeSessionInfo({
+              owner: eoa,
+              sessionKey: keyPair.address,
+              pk: keyPair.pk,
+            });
+          })
+          .then(async () => {
+            const tx2 = {
+              to: config.sessionKeyModule.address,
+              data: iFaceSessionModule.encodeFunctionData('createSession', [
+                keyPair.address,
+                [permissionParams],
+                sessionParams,
+              ]),
+            };
+            console.log('prepared txn for create session ');
+            console.log(tx2);
+            const scwTx = await smartAccount.createTransaction({
+              transaction: tx2,
+            });
+            console.log('wallet txn crearted ');
+            console.log(scwTx);
+            const txHash = await smartAccount.sendTransaction({
+              tx: scwTx,
+              // gasLimit,
+            });
+            console.log(txHash);
+            if (txHash) {
+              resolve(txHash);
+            } else {
+              reject(new Error('reject txn failed'));
+            }
+          });
+      });
+    case 'interact':
+      return new Promise((resolve) => {
+        // prepare data or fetch from params
+        getEOAAccount().then(async (eoa) => {
+          const sessionInfo = await getSessionInfo();
+          if (sessionInfo.owner === eoa) {
+            resolve('');
+            // const signer = new ethers.Wallet(sessionInfo.pk);
+            // make sign using util
+
+            // relayer calls session module contract
+          } else {
+            reject(new Error('reject txn failed'));
+          }
+        });
       });
     default:
       throw new Error('Method not found.');

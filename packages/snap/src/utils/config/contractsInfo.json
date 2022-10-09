@@ -1158,92 +1158,234 @@
       ]
     },
     "sessionKeyModule": {
-        "address": "0x62f2bbd0ac89274391248c863c996df5e9dcec16",
+        "address": "0x10520B459279e13348BC7D3Fa47b1C50CA62057c",
         "abi": [
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_owner",
-                  "type": "address"
-                }
-              ],
-              "stateMutability": "nonpayable",
-              "type": "constructor"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "contract SmartWallet",
-                  "name": "_safe",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "_to",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint96",
-                  "name": "_amount",
-                  "type": "uint96"
-                },
-                {
-                  "internalType": "bytes",
-                  "name": "_data",
-                  "type": "bytes"
-                }
-              ],
-              "name": "authCall",
-              "outputs": [],
-              "stateMutability": "nonpayable",
-              "type": "function"
-            },
-            {
-              "inputs": [],
-              "name": "moduleOwner",
-              "outputs": [
-                {
-                  "internalType": "address",
-                  "name": "",
-                  "type": "address"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address payable",
-                  "name": "_target",
-                  "type": "address"
-                }
-              ],
-              "name": "whitelistDestination",
-              "outputs": [],
-              "stateMutability": "nonpayable",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "",
-                  "type": "address"
-                }
-              ],
-              "name": "whitelisted",
-              "outputs": [
-                {
-                  "internalType": "bool",
-                  "name": "",
-                  "type": "bool"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            }
-          ]
+          {
+            "inputs": [],
+            "name": "NAME",
+            "outputs": [
+              {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [],
+            "name": "VERSION",
+            "outputs": [
+              {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              {
+                "internalType": "address",
+                "name": "sessionKey",
+                "type": "address"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "whitelistDestination",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes[]",
+                    "name": "whitelistMethods",
+                    "type": "bytes[]"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "tokenAmount",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct SessionKeyModule.PermissionParam[]",
+                "name": "permissions",
+                "type": "tuple[]"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "startTimestamp",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "endTimestamp",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "bool",
+                    "name": "enable",
+                    "type": "bool"
+                  }
+                ],
+                "internalType": "struct SessionKeyModule.SessionParam",
+                "name": "sessionParam",
+                "type": "tuple"
+              }
+            ],
+            "name": "createSession",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              {
+                "internalType": "contract ModuleManager",
+                "name": "smartAccount",
+                "type": "address"
+              },
+              {
+                "internalType": "address payable",
+                "name": "_to",
+                "type": "address"
+              },
+              {
+                "internalType": "uint96",
+                "name": "_amount",
+                "type": "uint96"
+              },
+              {
+                "internalType": "bytes",
+                "name": "_data",
+                "type": "bytes"
+              }
+            ],
+            "name": "executeTransaction",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              {
+                "internalType": "address",
+                "name": "sessionKey",
+                "type": "address"
+              }
+            ],
+            "name": "getSessionInfo",
+            "outputs": [
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "startTimestamp",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "endTimestamp",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "bool",
+                    "name": "enable",
+                    "type": "bool"
+                  }
+                ],
+                "internalType": "struct SessionKeyModule.SessionParam",
+                "name": "sessionInfo",
+                "type": "tuple"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              {
+                "internalType": "address",
+                "name": "sessionKey",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+              }
+            ],
+            "name": "getTokenPermissions",
+            "outputs": [
+              {
+                "components": [
+                  {
+                    "internalType": "bool",
+                    "name": "enable",
+                    "type": "bool"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct SessionKeyModule.TokenApproval",
+                "name": "tokenApproval",
+                "type": "tuple"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              {
+                "internalType": "address",
+                "name": "sessionKey",
+                "type": "address"
+              }
+            ],
+            "name": "getWhitelistDestinations",
+            "outputs": [
+              {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              {
+                "internalType": "address",
+                "name": "sessionKey",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "whitelistDestination",
+                "type": "address"
+              }
+            ],
+            "name": "getWhitelistMethods",
+            "outputs": [
+              {
+                "internalType": "bytes[]",
+                "name": "",
+                "type": "bytes[]"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          }
+        ]
     }
 }

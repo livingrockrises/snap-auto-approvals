@@ -8,6 +8,8 @@ import {
   // sendHello,
   // showGasFees,
   enableSessionOnSmartAccount,
+  createSessionForSmartAccount,
+  sendSessionTransaction,
   useSmartAccount,
 } from '../utils';
 import {
@@ -16,6 +18,8 @@ import {
   ReconnectButton,
   SendHelloButton,
   EnableModuleButton,
+  CreateSessionButton,
+  InteractSessionButton,
 } from './Buttons';
 import { Card } from './Card';
 
@@ -146,6 +150,32 @@ export const Home = () => {
     }
   };
 
+  const handleCreateSessionClick = async () => {
+    try {
+      // const response = await sendHello();
+      // console.log('app key', response);
+      // await showGasFees();
+      // await useSmartAccount();
+      await createSessionForSmartAccount();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const handleSessionInteractonClick = async () => {
+    try {
+      // const response = await sendHello();
+      // console.log('app key', response);
+      // await showGasFees();
+      // await useSmartAccount();
+      await sendSessionTransaction();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
   return (
     <Container>
       <Heading>
@@ -229,6 +259,42 @@ export const Home = () => {
             button: (
               <EnableModuleButton
                 onClick={handleEnableSessionClick}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            state.isFlask &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Create Session',
+            description: 'Create a session on your enabled Smart Account',
+            button: (
+              <CreateSessionButton
+                onClick={handleCreateSessionClick}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            state.isFlask &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Auto approvals',
+            description: 'Session approved actions: USDC approval',
+            button: (
+              <InteractSessionButton
+                onClick={handleSessionInteractonClick}
                 disabled={!state.installedSnap}
               />
             ),

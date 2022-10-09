@@ -102,6 +102,14 @@ export const EnableModuleButton = (props: ComponentProps<typeof Button>) => {
   return <Button {...props}>Enable Session Module</Button>;
 };
 
+export const CreateSessionButton = (props: ComponentProps<typeof Button>) => {
+  return <Button {...props}>Start a Session</Button>;
+};
+
+export const InteractSessionButton = (props: ComponentProps<typeof Button>) => {
+  return <Button {...props}>Sned Session Transaction</Button>;
+};
+
 export const HeaderButtons = ({
   state,
   onConnectClick,

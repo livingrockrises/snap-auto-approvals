@@ -177,7 +177,37 @@ export const enableSessionOnSmartAccount = async () => {
     params: [
       defaultSnapOrigin,
       {
-        method: 'enable_session',
+        method: 'enable_session_module',
+        params: ['First params'],
+      },
+    ],
+  });
+  console.log(smartAccountResponse);
+};
+
+export const createSessionForSmartAccount = async () => {
+  console.log('invoke Snap...');
+  const smartAccountResponse = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: 'create_session',
+        params: ['First params'],
+      },
+    ],
+  });
+  console.log(smartAccountResponse);
+};
+
+export const sendSessionTransaction = async () => {
+  console.log('invoke Snap...');
+  const smartAccountResponse = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: 'interact',
         params: ['First params'],
       },
     ],
