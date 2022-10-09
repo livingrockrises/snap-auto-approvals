@@ -291,7 +291,7 @@ export const Home = () => {
         <Card
           content={{
             title: 'Auto approvals',
-            description: 'Session approved actions: USDC approval',
+            description: 'Session approved actions: USDC transfer',
             button: (
               <InteractSessionButton
                 onClick={handleSessionInteractonClick}
