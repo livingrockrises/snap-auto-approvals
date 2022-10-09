@@ -1,5 +1,7 @@
-import { ethers, Signer } from 'ethers';
+import { ethers, Signer, BigNumber } from 'ethers';
 import { TypedDataSigner } from '@ethersproject/abstract-signer';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { configInfo as config } from '.';
 
 export const EIP_DOMAIN = {
   EIP712Domain: [
@@ -7,10 +9,9 @@ export const EIP_DOMAIN = {
     { type: 'address', name: 'verifyingContract' },
   ],
 };
-
-export type SessionTx = {
+export type SessionTransaction = {
   to: string;
-  amount: number;
+  amount: string | number | BigNumber;
   data: string;
   nonce: number;
 };
@@ -27,9 +28,10 @@ export const SESSION_TX_TYPE = {
 
 // TODO inputs and Date.now()
 export const getSessionParams = (): any => {
+  // todo: Remove hard coded session timestamp
   const sessionParam = {
-    startTimestamp: '1665239610',
-    endTimestamp: '1665326010',
+    startTimestamp: '1665350119',
+    endTimestamp: '1665436509',
     enable: true,
   };
   return sessionParam;
@@ -48,16 +50,52 @@ export const getPermissionParams = (tokenAddress: string): any => {
   const permissionParams = {
     whitelistDestination: tokenAddress,
     whitelistMethods: [transferFunctionSignature],
-    tokenAmount: 100000000,
+    tokenAmount: ethers.utils.parseEther('1000').toString(),
   };
   return permissionParams;
 };
 
+export const Erc20 = [
+  'function transfer(address _receiver, uint256 _value) public returns (bool success)',
+  'function transferFrom(address, address, uint) public returns (bool)',
+  'function approve(address _spender, uint256 _value) public returns (bool success)',
+  'function allowance(address _owner, address _spender) public view returns (uint256 remaining)',
+  'function balanceOf(address _owner) public view returns (uint256 balance)',
+  'event Approval(address indexed _owner, address indexed _spender, uint256 _value)',
+];
+
+export const Erc20Interface = new ethers.utils.Interface(Erc20);
+
+export const encodeTransfer = (
+  target: string,
+  amount: string | number,
+): string => {
+  return Erc20Interface.encodeFunctionData('transfer', [target, amount]);
+};
+
+const goerliProvider: JsonRpcProvider = new ethers.providers.JsonRpcProvider(
+  'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2',
+);
+
+export const getNonceForSessionKey = async (
+  sessionKey: string,
+): Promise<number> => {
+  const sessionKeyModuleContract = new ethers.Contract(
+    config.sessionKeyModule.address,
+    config.sessionKeyModule.abi,
+    goerliProvider,
+  );
+  const nonce = (
+    await sessionKeyModuleContract.getSessionInfo(sessionKey)
+  ).nonce.toNumber();
+  return nonce;
+};
+
 export const getEnabledSessionSig = async (
   signer: Signer & TypedDataSigner,
+  sessionKeyModuleAddress: string,
+  authorizedTx: SessionTransaction,
   chainId: number,
-  scwAddress: string,
-  authorizedTx: SessionTx,
 ): Promise<string> => {
   if (!chainId && !signer.provider) {
     throw Error('Provider required to retrieve chainId');
@@ -67,7 +105,7 @@ export const getEnabledSessionSig = async (
   // const signerAddress = await signer.getAddress();
 
   const signature = await signer._signTypedData(
-    { verifyingContract: scwAddress, chainId: cid },
+    { verifyingContract: sessionKeyModuleAddress, chainId: cid },
     SESSION_TX_TYPE,
     authorizedTx,
   );

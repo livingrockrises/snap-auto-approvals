@@ -3,10 +3,17 @@ import SmartAccount from '@biconomy-sdk/smart-account';
 import { LocalRelayer } from '@biconomy-sdk/relayer';
 import { ethers, Wallet as EOAWallet } from 'ethers';
 import { configInfo as config } from './utils';
-import { getSessionParams, getPermissionParams } from './utils/execution';
+import {
+  getSessionParams,
+  getPermissionParams,
+  getEnabledSessionSig,
+  getNonceForSessionKey,
+  encodeTransfer,
+} from './utils/execution';
 
+// TODO: Temp Goerli USDC
 const usdcAddress = '0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF';
-
+const receiver = '0x7306aC7A32eb690232De81a9FFB44Bb346026faB';
 let smartAccount: SmartAccount;
 
 const iFace = new ethers.utils.Interface(config.scwContract.abi);
@@ -40,7 +47,8 @@ wallet
 wallet.on('accountsChanged', async function (accounts: any) {
   console.log('updated accounts ');
   console.log(accounts[0]);
-  await smartAccount.init();
+  await getsmartAccount();
+  // await smartAccount.init();
 });
 
 /**
@@ -158,9 +166,21 @@ export const storeSessionInfo = async (data: SessionKeyStorage) => {
   });
 };
 
-export const clearSessionInfo = async () => {};
+export const clearSessionInfo = async () => {
+  const result = await wallet.request({
+    method: 'snap_manageState',
+    params: ['clear'],
+  });
+  return result;
+};
 
-export const getSessionInfo = async () => {};
+export const getSessionInfo = async () => {
+  const result = await wallet.request({
+    method: 'snap_manageState',
+    params: ['get'],
+  });
+  return result;
+};
 
 export const generateKeyPair = () => {
   const keyPair = ethers.Wallet.createRandom();
@@ -246,10 +266,10 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
               `Your Smart Account Address is ${_smartAccount.address}`,
             ).then(async (approval) => {
               if (approval) {
-                await saveSCWInfo({
+                /* await saveSCWInfo({
                   owner: _smartAccount.owner,
                   scwAddress: _smartAccount.address,
-                });
+                });*/
                 resolve(addr);
               } else {
                 reject(new Error('EOA user'));
@@ -361,15 +381,82 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
             }
           });
       });
+
+    // TODO : Review error
+    // Late promise received after Snap finished execution. Promise will be dropped.
     case 'interact':
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
+        console.log('inside interact');
+        // TODO: get session transaction from params that eventually comes from UI
+
+        const relayer = new LocalRelayer(
+          getEOAWallet(
+            process.env.REACT_APP_PKEY ||
+              '3ff26792ed7e1c706357a1565293371f2f479d331e6c718ac5c5445360e2cef8',
+          ),
+        );
+        console.log('local relayer init..');
+        console.log(relayer);
         // prepare data or fetch from params
         getEOAAccount().then(async (eoa) => {
-          const sessionInfo = await getSessionInfo();
+          const sessionInfo: any = await getSessionInfo();
+          console.log('session info ');
+          console.log(sessionInfo);
+
+          const authorizedTx = {
+            // sessionKey: sessionKey,
+            to: usdcAddress,
+            amount: 0,
+            data: encodeTransfer(
+              receiver,
+              ethers.utils.parseEther('10').toString(),
+            ),
+            nonce: 0, // await getNonceForSessionKey(sessionInfo.sessionKey),
+          };
+          console.log('authorizedTx');
+          console.log(authorizedTx);
+
+          console.log(eoa);
+          console.log('eoa');
+
           if (sessionInfo.owner === eoa) {
-            resolve('');
-            // const signer = new ethers.Wallet(sessionInfo.pk);
-            // make sign using util
+            const signer = new ethers.Wallet(sessionInfo.pk);
+            const signature = await getEnabledSessionSig(
+              signer,
+              config.sessionKeyModule.address,
+              authorizedTx,
+              Number(wallet.chainId),
+            );
+
+            console.log('got signature');
+            console.log(signature);
+
+            const tx3 = {
+              to: config.sessionKeyModule.address,
+              value: 0,
+              data: iFaceSessionModule.encodeFunctionData(
+                'executeTransaction',
+                [
+                  sessionInfo.sessionKey,
+                  authorizedTx.to,
+                  authorizedTx.amount,
+                  authorizedTx.data,
+                  signature,
+                ],
+              ),
+              chainId: Number(wallet.chainId),
+            };
+
+            console.log('module txn');
+            console.log(tx3);
+
+            const txHash = await relayer.relayAny(tx3);
+            console.log(txHash);
+            if (txHash) {
+              resolve(txHash);
+            } else {
+              reject(new Error('reject txn failed'));
+            }
 
             // relayer calls session module contract
           } else {

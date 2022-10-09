@@ -58,6 +58,9 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
+    "@biconomy-sdk/core-types": "1.0.14",
+    "@biconomy-sdk/relayer": "1.0.14",
+    "@biconomy-sdk/smart-account": "1.0.14",
     "@ethersproject/abstract-signer": "^5.7.0",
     "@ethersproject/providers": "^5.7.1",
     "ethers": "^5.7.1"

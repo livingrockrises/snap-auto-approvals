@@ -1158,8 +1158,34 @@
       ]
     },
     "sessionKeyModule": {
-        "address": "0x10520B459279e13348BC7D3Fa47b1C50CA62057c",
+        "address": "0x2b5Dca28Ad0b7301b78ee1218b1bFC4A7B22E3bC",
         "abi": [
+          {
+            "inputs": [],
+            "name": "ALLOWANCE_TRANSFER_TYPEHASH",
+            "outputs": [
+              {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [],
+            "name": "DOMAIN_SEPARATOR_TYPEHASH",
+            "outputs": [
+              {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
           {
             "inputs": [],
             "name": "NAME",
@@ -1201,9 +1227,9 @@
                     "type": "address"
                   },
                   {
-                    "internalType": "bytes[]",
+                    "internalType": "bytes4[]",
                     "name": "whitelistMethods",
-                    "type": "bytes[]"
+                    "type": "bytes4[]"
                   },
                   {
                     "internalType": "uint256",
@@ -1246,8 +1272,32 @@
           {
             "inputs": [
               {
-                "internalType": "contract ModuleManager",
-                "name": "smartAccount",
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "name": "decodeTransferData",
+            "outputs": [
+              {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+              }
+            ],
+            "stateMutability": "pure",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              {
+                "internalType": "address",
+                "name": "_sessionKey",
                 "type": "address"
               },
               {
@@ -1256,19 +1306,62 @@
                 "type": "address"
               },
               {
-                "internalType": "uint96",
-                "name": "_amount",
-                "type": "uint96"
+                "internalType": "uint256",
+                "name": "_value",
+                "type": "uint256"
               },
+              {
+                "internalType": "bytes",
+                "name": "_data",
+                "type": "bytes"
+              },
+              {
+                "internalType": "bytes",
+                "name": "signature",
+                "type": "bytes"
+              }
+            ],
+            "name": "executeTransaction",
+            "outputs": [
+              {
+                "internalType": "bool",
+                "name": "success",
+                "type": "bool"
+              }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+          {
+            "inputs": [],
+            "name": "getChainId",
+            "outputs": [
+              {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+              }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
               {
                 "internalType": "bytes",
                 "name": "_data",
                 "type": "bytes"
               }
             ],
-            "name": "executeTransaction",
-            "outputs": [],
-            "stateMutability": "nonpayable",
+            "name": "getSelector",
+            "outputs": [
+              {
+                "internalType": "bytes4",
+                "name": "",
+                "type": "bytes4"
+              }
+            ],
+            "stateMutability": "pure",
             "type": "function"
           },
           {
@@ -1297,9 +1390,14 @@
                     "internalType": "bool",
                     "name": "enable",
                     "type": "bool"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "nonce",
+                    "type": "uint256"
                   }
                 ],
-                "internalType": "struct SessionKeyModule.SessionParam",
+                "internalType": "struct SessionKeyModule.SessionResponse",
                 "name": "sessionInfo",
                 "type": "tuple"
               }
@@ -1378,9 +1476,9 @@
             "name": "getWhitelistMethods",
             "outputs": [
               {
-                "internalType": "bytes[]",
+                "internalType": "bytes4[]",
                 "name": "",
-                "type": "bytes[]"
+                "type": "bytes4[]"
               }
             ],
             "stateMutability": "view",
