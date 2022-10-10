@@ -84,37 +84,31 @@ let id = 0;
 export const getNonceForSessionKey = async (
   sessionKey: string,
 ): Promise<number> => {
-  const sessionKeyModuleContract = new ethers.Contract(
-    config.sessionKeyModule.address,
-    config.sessionKeyModule.abi,
-    goerliProvider,
-  );
-  const nonce = (
-    await sessionKeyModuleContract.getSessionInfo(sessionKey)
-  ).nonce.toNumber();
-  return nonce;
-};
+  // const sessionKeyModuleContract = new ethers.Contract(
+  //   config.sessionKeyModule.address,
+  //   config.sessionKeyModule.abi,
+  //   goerliProvider,
+  // );
+  // const nonce = (
+  //   await sessionKeyModuleContract.getSessionInfo(sessionKey)
+  // ).nonce.toNumber();
+  // return nonce;
 
-export const isModuleEnabled = async (
-  smartAccountAddress: string,
-  module: string,
-): Promise<boolean> => {
-  const smartAccountContract = new ethers.Contract(
-    smartAccountAddress,
-    config.scwContract.abi,
-    goerliProvider,
-  );
-  console.log(smartAccountContract);
-  console.log('module address ');
-  const iface = new ethers.utils.Interface(config.scwContract.abi);
-  const _params: any = iface.encodeFunctionData('isModuleEnabled', [module]);
+  console.log('Session key', sessionKey);
+  const iface = new ethers.utils.Interface(config.sessionKeyModule.abi);
+  const _params: any = iface.encodeFunctionData('getSessionInfo', [sessionKey]);
   console.log('Params ', _params);
   id += 1;
   const body = {
     method: 'eth_call',
     jsonrpc: '2.0',
     id,
-    params: [_params],
+    params: [
+      {
+        to: config.sessionKeyModule.address,
+        data: _params,
+      },
+    ],
   };
   const result = await fetch(rpcURL, {
     method: 'POST',
@@ -123,9 +117,50 @@ export const isModuleEnabled = async (
   });
   const json = await result.json();
   console.log('result', json);
+  console.log(json.result);
+  const decodedResult = iface.decodeFunctionResult(
+    'getSessionInfo',
+    json.result,
+  );
+  if (decodedResult?.sessionInfo?.nonce !== undefined) {
+    return decodedResult.sessionInfo.nonce.toNumber();
+  }
+  throw new Error(`Could not get nonce for session key ${sessionKey}`);
+};
 
+export const isModuleEnabled = async (
+  smartAccountAddress: string,
+  module: string,
+): Promise<boolean> => {
+  console.log('Smart account addresss', smartAccountAddress);
+  console.log('module address ', module);
+  const iface = new ethers.utils.Interface(config.scwContract.abi);
+  const _params: any = iface.encodeFunctionData('isModuleEnabled', [module]);
+  console.log('Params ', _params);
+  id += 1;
+  const body = {
+    method: 'eth_call',
+    jsonrpc: '2.0',
+    id,
+    params: [
+      {
+        to: smartAccountAddress,
+        data: _params,
+      },
+    ],
+  };
+  const result = await fetch(rpcURL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const json = await result.json();
+  console.log('result', json);
+  if (json.result === '0x') {
+    return false;
+  }
   // console.log('result from contract', result);
-  return Boolean(json);
+  return true;
 };
 
 export const getEnabledSessionSig = async (

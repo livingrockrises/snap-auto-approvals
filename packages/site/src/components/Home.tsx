@@ -14,7 +14,7 @@ import {
 import {
   connectSnap,
   getSnap,
-  shouldDisplayReconnectButton,
+
   // sendHello,
   // showGasFees,
   enableSessionOnSmartAccount,
@@ -142,6 +142,42 @@ const SessionsCard = styled.div<{ disabled: boolean }>`
     margin-bottom: 1.2rem;
     padding: 1.6rem;
   }
+`;
+
+const TransactionsCard = styled.div<{ disabled: boolean }>`
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  background-color: ${({ theme }) => theme.colors.card.default};
+  margin-top: 2.4rem;
+  margin-bottom: 2.4rem;
+  padding: 2.4rem;
+  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border-radius: ${({ theme }) => theme.radii.default};
+  box-shadow: ${({ theme }) => theme.shadows.default};
+  filter: opacity(${({ disabled }) => (disabled ? '.4' : '1')});
+  align-self: stretch;
+  ${({ theme }) => theme.mediaQueries.small} {
+    width: 100%;
+    margin-top: 1.2rem;
+    margin-bottom: 1.2rem;
+    padding: 1.6rem;
+  }
+`;
+
+const TransactionHeader = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const TransactionBody = styled.div`
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  padding: 20px 0px 10px 0px;
 `;
 
 const SessionOverviewMessage = styled.div`
@@ -317,11 +353,27 @@ export const Home = () => {
 
   const handleEnableSessionClick = async () => {
     try {
-      // const response = await sendHello();
-      // console.log('app key', response);
-      // await showGasFees();
-      // await useSmartAccount();
-      await enableSessionOnSmartAccount();
+      notify(
+        'Initiating add module transcation. This will also deploy your Smart Account if not already deployed',
+        {
+          autoClose: 4000,
+        },
+      );
+
+      setTimeout(() => {
+        notify(
+          'When prompted, give your signature to add Session Module on your Smart Account',
+        );
+      }, 4000);
+      const txHash: any = await enableSessionOnSmartAccount();
+      if (txHash) {
+        const { emitter } = bncNotify.hash(txHash);
+        emitter.on('txConfirmed', () => {
+          notify(
+            'Session Module successfully added. Now start creating sessions for auto approvals.',
+          );
+        });
+      }
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -357,11 +409,16 @@ export const Home = () => {
 
   const handleSessionInteractonClick = async () => {
     try {
-      // const response = await sendHello();
-      // console.log('app key', response);
-      // await showGasFees();
-      // await useSmartAccount();
-      await sendSessionTransaction();
+      notify(
+        'Sending transaction using autorised session. No need to sign any messages or transaction.',
+      );
+      const txHash: any = await sendSessionTransaction();
+      if (txHash) {
+        const { emitter } = bncNotify.hash(txHash);
+        emitter.on('txConfirmed', () => {
+          notify('Token transfer via session key successful.');
+        });
+      }
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -515,9 +572,15 @@ export const Home = () => {
             </SessionsCard>
           </ContainerRow>
           <ContainerRow>
+            <TransactionsCard disabled={smartAccount.sessionInfo.length === 0}>
+              <TransactionHeader>
+                <Title>Interact with your Wallet via Session Keys</Title>
+              </TransactionHeader>
+              <TransactionBody></TransactionBody>
+            </TransactionsCard>
             <Card
               content={{
-                title: 'Auto approvals',
+                title: 'Interact with your Wallet via Session Keys',
                 description: 'Session approved actions: USDC transfer',
                 button: (
                   <InteractSessionButton
@@ -527,11 +590,7 @@ export const Home = () => {
                 ),
               }}
               disabled={!state.installedSnap}
-              fullWidth={
-                state.isFlask &&
-                Boolean(state.installedSnap) &&
-                !shouldDisplayReconnectButton(state.installedSnap)
-              }
+              fullWidth={true}
             />
           </ContainerRow>
         </MainContainer>

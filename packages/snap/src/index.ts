@@ -32,19 +32,6 @@ async function getFees() {
   return response.text();
 }
 
-// wallet
-//   .request({
-//     method: 'wallet_requestPermissions',
-//     params: [{ eth_accounts: {} }],
-//   })
-//   .then((permissions) => {
-//     console.log('permissions granted..');
-//     console.log(permissions);
-//   })
-//   .catch((error) => {
-//     console.error(error);
-//   });
-
 wallet.on('accountsChanged', async function (accounts: any) {
   console.log('updated accounts ');
   console.log(accounts[0]);
@@ -276,9 +263,27 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         /* if (storedValue && storedValue.owner === eoa) {
             resolve(storedValue.scwAddress);
           } else {*/
-        getsmartAccount().then((_smartAccount) => {
+        // wallet
+        //   .request({
+        //     method: 'wallet_requestPermissions',
+        //     params: [{ eth_accounts: {} }],
+        //   })
+        //   .then((permissions) => {
+        //     console.log('permissions granted..');
+        //     console.log(permissions);
+        //   })
+        //   .catch((error) => {
+        //     console.error(error);
+        //   });
+
+        getsmartAccount().then(async (_smartAccount) => {
           console.log('owner ', _smartAccount.owner);
           // const addr = _smartAccount.address;
+          const currentSessionInfo: any = await getSessionInfo();
+          if (currentSessionInfo.owner !== _smartAccount.owner) {
+            await clearSessionInfo();
+          }
+
           promptUser(
             getMessage(origin),
             'Do you want to use Smart Account',
@@ -442,12 +447,16 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
           console.log('session info ');
           console.log(sessionInfo);
 
+          const nonceFromModule = await getNonceForSessionKey(
+            sessionInfo.sessionKey,
+          );
+          console.log('Got nonce from module', nonceFromModule);
           const authorizedTx = {
             // sessionKey: sessionKey,
             to: usdcAddress,
             amount: 0,
             data: encodeTransfer(receiver, '10000000'),
-            nonce: await getNonceForSessionKey(sessionInfo.sessionKey),
+            nonce: nonceFromModule,
           };
           console.log('authorizedTx');
           console.log(authorizedTx);
@@ -489,7 +498,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
             const txHash = await relayer.relayAny(tx3);
             console.log(txHash);
             if (txHash) {
-              resolve(txHash);
+              resolve(txHash.hash);
             } else {
               reject(new Error('reject txn failed'));
             }

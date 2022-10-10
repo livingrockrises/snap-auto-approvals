@@ -50,6 +50,13 @@ export const Header = ({
       await connectSnap();
       const installedSnap = await getSnap();
 
+      if (window.ethereum) {
+        await window.ethereum.request({
+          method: 'wallet_requestPermissions',
+          params: [{ eth_accounts: {} }],
+        });
+      }
+
       dispatch({
         type: MetamaskActions.SetInstalled,
         payload: installedSnap,

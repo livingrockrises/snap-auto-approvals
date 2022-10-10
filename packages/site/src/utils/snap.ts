@@ -202,7 +202,7 @@ export const useSmartAccount = async () => {
   return smartAccountResponse;
 };
 
-export const enableSessionOnSmartAccount = async (): Promise<boolean> => {
+export const enableSessionOnSmartAccount = async () => {
   console.log('invoke Snap...');
   const smartAccountResponse = await window.ethereum.request({
     method: 'wallet_invokeSnap',
@@ -215,7 +215,7 @@ export const enableSessionOnSmartAccount = async (): Promise<boolean> => {
     ],
   });
   console.log(smartAccountResponse);
-  return Boolean(smartAccountResponse);
+  return smartAccountResponse;
 };
 
 export const createSessionForSmartAccount = async () => {
