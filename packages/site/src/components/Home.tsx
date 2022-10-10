@@ -2,6 +2,10 @@ import { useContext } from 'react';
 import styled from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
+  SmartAccountActions,
+  SmartAccountContext,
+} from '../hooks/SmartAccountContext';
+import {
   connectSnap,
   getSnap,
   shouldDisplayReconnectButton,
@@ -49,15 +53,15 @@ const Span = styled.span`
   color: ${(props) => props.theme.colors.primary.default};
 `;
 
-const Subtitle = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  font-weight: 500;
-  margin-top: 0;
-  margin-bottom: 0;
-  ${({ theme }) => theme.mediaQueries.small} {
-    font-size: ${({ theme }) => theme.fontSizes.text};
-  }
-`;
+// const Subtitle = styled.p`
+//   font-size: ${({ theme }) => theme.fontSizes.large};
+//   font-weight: 500;
+//   margin-top: 0;
+//   margin-bottom: 0;
+//   ${({ theme }) => theme.mediaQueries.small} {
+//     font-size: ${({ theme }) => theme.fontSizes.text};
+//   }
+// `;
 
 const CardContainer = styled.div`
   display: flex;
@@ -109,6 +113,7 @@ const ErrorMessage = styled.div`
 
 export const Home = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
+  const [, saDispatch] = useContext(SmartAccountContext);
 
   const handleConnectClick = async () => {
     try {
@@ -127,10 +132,17 @@ export const Home = () => {
 
   const handleSendHelloClick = async () => {
     try {
-      // const response = await sendHello();
-      // console.log('app key', response);
-      // await showGasFees();
-      await useSmartAccount();
+      console.log('Sending useSmart Account event');
+      const smartAccount: any = await useSmartAccount();
+      console.log('got smart account', smartAccount);
+      if (smartAccount) {
+        saDispatch({
+          type: SmartAccountActions.SetSmartAccount,
+          payload: {
+            smartAccount,
+          },
+        });
+      }
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -181,9 +193,7 @@ export const Home = () => {
       <Heading>
         Welcome to <Span>SCW Session keys Snap</Span>
       </Heading>
-      <Subtitle>
-        Get started by editing <code>src/index.ts</code>
-      </Subtitle>
+
       <CardContainer>
         {state.error && (
           <ErrorMessage>

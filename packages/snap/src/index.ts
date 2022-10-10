@@ -31,18 +31,18 @@ async function getFees() {
   return response.text();
 }
 
-wallet
-  .request({
-    method: 'wallet_requestPermissions',
-    params: [{ eth_accounts: {} }],
-  })
-  .then((permissions) => {
-    console.log('permissions granted..');
-    console.log(permissions);
-  })
-  .catch((error) => {
-    console.error(error);
-  });
+// wallet
+//   .request({
+//     method: 'wallet_requestPermissions',
+//     params: [{ eth_accounts: {} }],
+//   })
+//   .then((permissions) => {
+//     console.log('permissions granted..');
+//     console.log(permissions);
+//   })
+//   .catch((error) => {
+//     console.error(error);
+//   });
 
 wallet.on('accountsChanged', async function (accounts: any) {
   console.log('updated accounts ');
@@ -109,6 +109,7 @@ export const promptUser = async (
       },
     ],
   });
+  console.log('Prompt user response', response);
   if (response) {
     return response;
   }
@@ -116,7 +117,7 @@ export const promptUser = async (
 };
 
 export const getEOAAccount = async (): Promise<string> => {
-  const accounts: any = await wallet.request({ method: 'eth_requestAccounts' });
+  const accounts: any = await wallet.request({ method: 'eth_accounts' });
   return accounts[0];
 };
 
@@ -201,7 +202,10 @@ export const generateKeyPair = () => {
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_confirm` call failed.
  */
-export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
+export const onRpcRequest: OnRpcRequestHandler = async ({
+  origin,
+  request,
+}) => {
   switch (request.method) {
     case 'hello':
       /* return new Promise((resolve) => {
@@ -249,36 +253,41 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
           ],
         });
       });
-    case 'connect':
+    case 'connect': {
       return new Promise((resolve, reject) => {
-        getEOAAccount().then(async (eoa) => {
-          // const storedValue: any = await getSCWInfo();
-          await clearSCWInfo();
-          /* if (storedValue && storedValue.owner === eoa) {
+        // getEOAAccount().then(async (eoa) => {
+        // const storedValue: any = await getSCWInfo();
+        // await clearSCWInfo();
+        /* if (storedValue && storedValue.owner === eoa) {
             resolve(storedValue.scwAddress);
           } else {*/
-          getsmartAccount().then(async (_smartAccount) => {
-            console.log('owner ', _smartAccount.owner);
-            const addr = _smartAccount.address;
-            promptUser(
-              getMessage(origin),
-              'Do you want to use Smart Account',
-              `Your Smart Account Address is ${_smartAccount.address}`,
-            ).then(async (approval) => {
-              if (approval) {
-                /* await saveSCWInfo({
+        getsmartAccount().then((_smartAccount) => {
+          console.log('owner ', _smartAccount.owner);
+          // const addr = _smartAccount.address;
+          promptUser(
+            getMessage(origin),
+            'Do you want to use Smart Account',
+            `Your Smart Account Address is ${_smartAccount.address}`,
+          ).then((approval) => {
+            if (approval) {
+              /* await saveSCWInfo({
                   owner: _smartAccount.owner,
                   scwAddress: _smartAccount.address,
                 });*/
-                resolve(addr);
-              } else {
-                reject(new Error('EOA user'));
-              }
-            });
+              console.log('Sending smart acccount response ', _smartAccount);
+              resolve({
+                address: _smartAccount.address,
+                owner: _smartAccount.owner,
+              });
+            } else {
+              reject(new Error('EOA user'));
+            }
           });
-          // }
         });
+        // }
+        // });
       });
+    }
     case 'enable_session_module':
       return new Promise((resolve, reject) => {
         const relayer = new LocalRelayer(
@@ -289,36 +298,39 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
         );
         console.log('local relayer init..');
         console.log(relayer);
-        smartAccount.setRelayer(relayer);
-        console.log('relayer is set');
 
-        const tx1 = {
-          to: smartAccount.address,
-          data: iFace.encodeFunctionData('enableModule', [
-            config.sessionKeyModule.address,
-          ]),
-        };
-        console.log('data for session module');
-        console.log(tx1);
+        getsmartAccount().then((_smartAccount) => {
+          _smartAccount.setRelayer(relayer);
+          console.log('relayer is set');
 
-        smartAccount
-          .createTransaction({
-            transaction: tx1,
-          })
-          .then(async (walletTx) => {
-            console.log('wallet txn crearted ');
-            console.log(walletTx);
-            const txHash = await smartAccount.sendTransaction({
-              tx: walletTx,
-              // gasLimit,
+          const tx1 = {
+            to: _smartAccount.address,
+            data: iFace.encodeFunctionData('enableModule', [
+              config.sessionKeyModule.address,
+            ]),
+          };
+          console.log('data for session module');
+          console.log(tx1);
+
+          _smartAccount
+            .createTransaction({
+              transaction: tx1,
+            })
+            .then(async (walletTx) => {
+              console.log('wallet txn crearted ');
+              console.log(walletTx);
+              const txHash = await _smartAccount.sendTransaction({
+                tx: walletTx,
+                // gasLimit,
+              });
+              console.log(txHash);
+              if (txHash) {
+                resolve(txHash);
+              } else {
+                reject(new Error('reject txn failed'));
+              }
             });
-            console.log(txHash);
-            if (txHash) {
-              resolve(txHash);
-            } else {
-              reject(new Error('reject txn failed'));
-            }
-          });
+        });
 
         /* const gasLimit: GasLimit = {
           hex: '0x1E8480',
@@ -342,44 +354,46 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
         );
         console.log('local relayer init..');
         console.log(relayer);
-        smartAccount.setRelayer(relayer);
-        console.log('relayer is set');
+        getsmartAccount().then((_smartAccount) => {
+          _smartAccount.setRelayer(relayer);
+          console.log('relayer is set');
 
-        getEOAAccount()
-          .then(async (eoa) => {
-            await storeSessionInfo({
-              owner: eoa,
-              sessionKey: keyPair.address,
-              pk: keyPair.pk,
+          getEOAAccount()
+            .then(async (eoa) => {
+              await storeSessionInfo({
+                owner: eoa,
+                sessionKey: keyPair.address,
+                pk: keyPair.pk,
+              });
+            })
+            .then(async () => {
+              const tx2 = {
+                to: config.sessionKeyModule.address,
+                data: iFaceSessionModule.encodeFunctionData('createSession', [
+                  keyPair.address,
+                  [permissionParams],
+                  sessionParams,
+                ]),
+              };
+              console.log('prepared txn for create session ');
+              console.log(tx2);
+              const scwTx = await _smartAccount.createTransaction({
+                transaction: tx2,
+              });
+              console.log('wallet txn crearted ');
+              console.log(scwTx);
+              const txHash = await _smartAccount.sendTransaction({
+                tx: scwTx,
+                // gasLimit,
+              });
+              console.log(txHash);
+              if (txHash) {
+                resolve(txHash);
+              } else {
+                reject(new Error('reject txn failed'));
+              }
             });
-          })
-          .then(async () => {
-            const tx2 = {
-              to: config.sessionKeyModule.address,
-              data: iFaceSessionModule.encodeFunctionData('createSession', [
-                keyPair.address,
-                [permissionParams],
-                sessionParams,
-              ]),
-            };
-            console.log('prepared txn for create session ');
-            console.log(tx2);
-            const scwTx = await smartAccount.createTransaction({
-              transaction: tx2,
-            });
-            console.log('wallet txn crearted ');
-            console.log(scwTx);
-            const txHash = await smartAccount.sendTransaction({
-              tx: scwTx,
-              // gasLimit,
-            });
-            console.log(txHash);
-            if (txHash) {
-              resolve(txHash);
-            } else {
-              reject(new Error('reject txn failed'));
-            }
-          });
+        });
       });
 
     // TODO : Review error
@@ -407,10 +421,7 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
             // sessionKey: sessionKey,
             to: usdcAddress,
             amount: 0,
-            data: encodeTransfer(
-              receiver,
-              ethers.utils.parseEther('10').toString(),
-            ),
+            data: encodeTransfer(receiver, '10000000'),
             nonce: 0, // await getNonceForSessionKey(sessionInfo.sessionKey),
           };
           console.log('authorizedTx');

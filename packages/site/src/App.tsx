@@ -5,6 +5,7 @@ import { MetaMaskProvider } from './hooks';
 
 import { light, dark, GlobalStyle } from './config/theme';
 import { setLocalStorage, getThemePreference } from './utils';
+import { SmartAccountProvider } from './hooks/SmartAccountContext';
 
 const Wrapper = styled.div`
   display: flex;
@@ -25,12 +26,14 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme ? dark : light}>
       <MetaMaskProvider>
-        <GlobalStyle />
-        <Wrapper>
-          <Header handleToggleClick={toggleTheme} />
-          <Home />
-          <Footer />
-        </Wrapper>
+        <SmartAccountProvider>
+          <GlobalStyle />
+          <Wrapper>
+            <Header handleToggleClick={toggleTheme} />
+            <Home />
+            <Footer />
+          </Wrapper>
+        </SmartAccountProvider>
       </MetaMaskProvider>
     </ThemeProvider>
   );

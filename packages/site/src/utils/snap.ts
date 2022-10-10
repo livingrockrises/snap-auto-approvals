@@ -157,7 +157,7 @@ export const showGasFees = async () => {
 
 export const useSmartAccount = async () => {
   console.log('invoke Snap...');
-  const smartAccountResponse = await window.ethereum.request({
+  const smartAccountResponse: any = await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
@@ -168,9 +168,10 @@ export const useSmartAccount = async () => {
     ],
   });
   console.log(smartAccountResponse);
+  return smartAccountResponse;
 };
 
-export const enableSessionOnSmartAccount = async () => {
+export const enableSessionOnSmartAccount = async (): Promise<boolean> => {
   console.log('invoke Snap...');
   const smartAccountResponse = await window.ethereum.request({
     method: 'wallet_invokeSnap',
@@ -183,6 +184,7 @@ export const enableSessionOnSmartAccount = async () => {
     ],
   });
   console.log(smartAccountResponse);
+  return Boolean(smartAccountResponse);
 };
 
 export const createSessionForSmartAccount = async () => {
