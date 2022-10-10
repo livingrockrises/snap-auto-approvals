@@ -9,6 +9,7 @@ import {
   getEnabledSessionSig,
   getNonceForSessionKey,
   encodeTransfer,
+  isModuleEnabled,
 } from './utils/execution';
 
 // TODO: Temp Goerli USDC
@@ -253,6 +254,20 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
           ],
         });
       });
+
+    case 'isSessionModuleEnabled': {
+      console.log('Request for is sesion module enabled');
+      const _params: any = request.params;
+      if (_params && _params.length > 0) {
+        const obj = _params[0];
+        return await isModuleEnabled(
+          obj.smartAccountAddress,
+          config.sessionKeyModule.address,
+        );
+      }
+      return false;
+    }
+
     case 'connect': {
       return new Promise((resolve, reject) => {
         // getEOAAccount().then(async (eoa) => {
@@ -396,6 +411,16 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         });
       });
 
+    case 'get_session_info': {
+      const sessionInfo: any = await getSessionInfo();
+      if (sessionInfo) {
+        return {
+          sessionKey: sessionInfo.sessionKey,
+          owner: sessionInfo.owner,
+        };
+      }
+      return undefined;
+    }
     // TODO : Review error
     // Late promise received after Snap finished execution. Promise will be dropped.
     case 'interact':
@@ -422,7 +447,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
             to: usdcAddress,
             amount: 0,
             data: encodeTransfer(receiver, '10000000'),
-            nonce: 0, // await getNonceForSessionKey(sessionInfo.sessionKey),
+            nonce: await getNonceForSessionKey(sessionInfo.sessionKey),
           };
           console.log('authorizedTx');
           console.log(authorizedTx);

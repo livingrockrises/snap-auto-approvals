@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
-import { SmartAccountContext } from '../hooks/SmartAccountContext';
 import { connectSnap, getThemePreference, getSnap } from '../utils';
 import { HeaderButtons } from './Buttons';
 import { SnapLogo } from './SnapLogo';
@@ -45,7 +44,6 @@ export const Header = ({
 }) => {
   const theme = useTheme();
   const [state, dispatch] = useContext(MetaMaskContext);
-  const [smartAccountState] = useContext(SmartAccountContext);
 
   const handleConnectClick = async () => {
     try {
@@ -68,11 +66,6 @@ export const Header = ({
         <Title>Smart Account Sessions</Title>
       </LogoWrapper>
       <RightContainer>
-        <span>
-          {smartAccountState.address
-            ? smartAccountState.address
-            : 'Smart Accounts not enabled yet.'}
-        </span>
         <Toggle
           onToggle={handleToggleClick}
           defaultChecked={getThemePreference()}

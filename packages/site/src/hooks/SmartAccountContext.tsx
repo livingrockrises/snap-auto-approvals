@@ -6,11 +6,17 @@ export type SmartModule = {
   name: string;
 };
 
+export type SessionKey = {
+  key: string;
+  owner: string;
+};
 export type SmartAccountState = {
   isDeployed: boolean;
   address: string | undefined;
   owner: string | undefined;
   modules: SmartModule[];
+  sessionModuleEnabled: boolean;
+  sessionInfo: SessionKey[];
 };
 
 const initialState: SmartAccountState = {
@@ -18,6 +24,8 @@ const initialState: SmartAccountState = {
   address: undefined,
   owner: undefined,
   modules: [],
+  sessionModuleEnabled: false,
+  sessionInfo: [],
 };
 
 type SmartAccountDispatch = { type: SmartAccountActions; payload: any };
@@ -34,6 +42,8 @@ export const SmartAccountContext = createContext<
 export enum SmartAccountActions {
   SetModule = 'SetModule',
   SetSmartAccount = 'SetSmartAccount',
+  SetSessionModuleEnabled = 'SetSessionModuleEnabled',
+  SetSessionKey = 'SetSessionKey',
 }
 
 const reducer: Reducer<SmartAccountState, SmartAccountDispatch> = (
@@ -41,6 +51,18 @@ const reducer: Reducer<SmartAccountState, SmartAccountDispatch> = (
   action,
 ) => {
   switch (action.type) {
+    case SmartAccountActions.SetSessionKey: {
+      const _sessionInfo = action.payload;
+      console.log('Set session key from action payload', action.payload);
+      const _sessionArray: SessionKey[] = state.sessionInfo;
+      const cloneCopy: SessionKey[] = JSON.parse(JSON.stringify(_sessionArray));
+      cloneCopy.push(_sessionInfo);
+      return {
+        ...state,
+        sessionInfo: [_sessionInfo],
+      };
+    }
+
     case SmartAccountActions.SetModule: {
       const _module: any = action.payload;
       const moduleArray: SmartModule[] = state.modules;
@@ -56,11 +78,18 @@ const reducer: Reducer<SmartAccountState, SmartAccountDispatch> = (
         'UPdating smart acconut state with payload: ',
         action.payload,
       );
-      const { smartAccount } = action.payload;
+      const { _smartAccount } = action.payload;
       return {
         ...state,
-        address: smartAccount.address,
-        owner: smartAccount.owner,
+        address: _smartAccount.address,
+        owner: _smartAccount.owner,
+      };
+    }
+
+    case SmartAccountActions.SetSessionModuleEnabled: {
+      return {
+        ...state,
+        sessionModuleEnabled: action.payload,
       };
     }
     default:

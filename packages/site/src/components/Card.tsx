@@ -5,7 +5,7 @@ type CardProps = {
   content: {
     title: string;
     description: string;
-    button: ReactNode;
+    button?: ReactNode;
   };
   disabled?: boolean;
   fullWidth?: boolean;
@@ -14,7 +14,7 @@ type CardProps = {
 const CardWrapper = styled.div<{ fullWidth?: boolean; disabled: boolean }>`
   display: flex;
   flex-direction: column;
-  width: ${({ fullWidth }) => (fullWidth ? '100%' : '250px')};
+  width: ${({ fullWidth }) => (fullWidth ? '100%' : '380px')};
   background-color: ${({ theme }) => theme.colors.card.default};
   margin-top: 2.4rem;
   margin-bottom: 2.4rem;

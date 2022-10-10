@@ -49,5 +49,9 @@
   "packageManager": "yarn@3.2.1",
   "engines": {
     "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "bnc-notify": "^1.9.5",
+    "react-toastify": "^9.0.8"
   }
 }

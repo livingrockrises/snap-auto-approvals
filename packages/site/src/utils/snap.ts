@@ -155,6 +155,37 @@ export const showGasFees = async () => {
   console.log(gasFeesResponse);
 };
 
+export const getSessionInfo = async () => {
+  console.log('invoking snap to get session info');
+  const sessionInfo = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: 'get_session_info',
+      },
+    ],
+  });
+  console.log('Session info from snap: ', sessionInfo);
+  return sessionInfo;
+};
+
+export const isSessionModuleEnabled = async (smartAccountAddress: string) => {
+  console.log('invoke Snap...');
+  const isModuleEnabled: any = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: 'isSessionModuleEnabled',
+        params: [{ smartAccountAddress }],
+      },
+    ],
+  });
+  console.log(isModuleEnabled);
+  return isModuleEnabled;
+};
+
 export const useSmartAccount = async () => {
   console.log('invoke Snap...');
   const smartAccountResponse: any = await window.ethereum.request({
@@ -188,18 +219,18 @@ export const enableSessionOnSmartAccount = async (): Promise<boolean> => {
 };
 
 export const createSessionForSmartAccount = async () => {
-  console.log('invoke Snap...');
-  const smartAccountResponse = await window.ethereum.request({
+  console.log('invoke Snap to create add session transaction...');
+  const createSessionResponse = await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
       {
         method: 'create_session',
-        params: ['First params'],
       },
     ],
   });
-  console.log(smartAccountResponse);
+  console.log(createSessionResponse);
+  return createSessionResponse;
 };
 
 export const sendSessionTransaction = async () => {

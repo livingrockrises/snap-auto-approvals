@@ -73,9 +73,13 @@ export const encodeTransfer = (
   return Erc20Interface.encodeFunctionData('transfer', [target, amount]);
 };
 
+const rpcURL =
+  'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2';
 const goerliProvider: JsonRpcProvider = new ethers.providers.JsonRpcProvider(
-  'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2',
+  rpcURL,
 );
+
+let id = 0;
 
 export const getNonceForSessionKey = async (
   sessionKey: string,
@@ -89,6 +93,39 @@ export const getNonceForSessionKey = async (
     await sessionKeyModuleContract.getSessionInfo(sessionKey)
   ).nonce.toNumber();
   return nonce;
+};
+
+export const isModuleEnabled = async (
+  smartAccountAddress: string,
+  module: string,
+): Promise<boolean> => {
+  const smartAccountContract = new ethers.Contract(
+    smartAccountAddress,
+    config.scwContract.abi,
+    goerliProvider,
+  );
+  console.log(smartAccountContract);
+  console.log('module address ');
+  const iface = new ethers.utils.Interface(config.scwContract.abi);
+  const _params: any = iface.encodeFunctionData('isModuleEnabled', [module]);
+  console.log('Params ', _params);
+  id += 1;
+  const body = {
+    method: 'eth_call',
+    jsonrpc: '2.0',
+    id,
+    params: [_params],
+  };
+  const result = await fetch(rpcURL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const json = await result.json();
+  console.log('result', json);
+
+  // console.log('result from contract', result);
+  return Boolean(json);
 };
 
 export const getEnabledSessionSig = async (
